@@ -1,25 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
 
-function App() {
+const App = () => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('http://localhost:8080/api/rss')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setArticles(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        setError(error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>The Latest News on AI and Machine Learning from TechXplore.com</h1>
+      <ul>
+        {articles.map((article, index) => (
+          <li key={index}>
+            <h2>{article.title}</h2>
+            <p>{article.description}</p>
+            <a href={article.link} target="_blank" rel="noopener noreferrer">Read more</a>
+            <p><strong>Category:</strong> {article.category}</p>
+            <p><strong>Published:</strong> {article.pubDate}</p>
+            {article.thumbnail && <img src={article.thumbnail} alt="Thumbnail" />}
+          </li>
+        ))}
+      </ul>
     </div>
   );
-}
+};
 
 export default App;
